@@ -1,5 +1,5 @@
-# Mlb The Show 17 Market Assistant
-This is a tool to assist users in trading on the market in PS4 game "MLB The Show 17". The program crawls www.theshownation.com and gathers the data for a player's buy and sell now prices into a list that can be filtered to help the user find which card is best for them to flip on the market. Heres a quick demonstration of the program https://www.youtube.com/watch?v=M1anP-uuKd8
+# Mlb The Show 18 Market Assistant
+This is a tool to assist users in trading on the market in PS4 game "MLB The Show 18". The program crawls www.theshownation.com and gathers the data for a player's buy and sell now prices into a list that can be filtered to help the user find which card is best for them to flip on the market. Heres a quick demonstration of the program https://www.youtube.com/watch?v=M1anP-uuKd8
 
 
 ## Installation
@@ -14,10 +14,14 @@ This is a tool to assist users in trading on the market in PS4 game "MLB The Sho
 
 ## History
   * v1.0
-    * Updated program to be compatible with "MLB The Show 17"
+    * Updated program to be compatible with "MLB The Show 18"
+    * Added links to player cards
+    * Added support for other card series
+    * Added update detection
+    
 
 ## To Do List
-  * Nothing as of now, if you have any requests email me at AnthoneyKalasho@gmail.com
+  * Nothing as of now, if you have any requests email me at AnthoneyKalasho@gmail.com or submit a request under issues.
 
 ## Contributing
 
@@ -32,6 +36,7 @@ This is a tool to assist users in trading on the market in PS4 game "MLB The Sho
 I spent a lot of time on this so if you enjoy it and would like to donate, you can donate to
 
 PayPal: AnthoneyKalasho@Gmail.com
+Venmo: @AnthoneyKalasho
 
 Thanks and I hope you find the program useful!
 
