@@ -1,5 +1,5 @@
 # Mlb The Show 18 Market Assistant
-This is a tool to assist users in trading on the market in PS4 game "MLB The Show 18". The program crawls www.theshownation.com and gathers the data for a player's buy and sell now prices into a list that can be filtered to help the user find which card is best for them to flip on the market. Heres a quick demonstration of the program https://www.youtube.com/watch?v=M1anP-uuKd8
+This is a tool to assist users in trading on the market in PS4 game "MLB The Show 18". The program crawls www.theshownation.com and gathers the data for a player's buy and sell now prices into a list that can be filtered to help the user find which card is best for them to flip on the market. Heres a quick demonstration of the program https://www.youtube.com/watch?v=rapuaKNEt6A
 
 
 ## Installation
@@ -7,7 +7,7 @@ This is a tool to assist users in trading on the market in PS4 game "MLB The Sho
 1. Install Java if you do not already have it
   * https://java.com/en/download/
 2. Download the latest version of the program
-  * [v1.0](https://sourceforge.net/projects/mlbtheshow17marketassistant/files/MLB%20The%20Show%2017%20Market%20Assistant%20v1.0.jar/download)
+  * [v1.0](https://sourceforge.net/projects/mlbtheshow18marketassistant/files/MLB%20The%20Show%2018%20Market%20Assistant%20v1.0.jar/download)
  
 3. Run it!
 
