@@ -1,12 +1,18 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -19,6 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -47,6 +56,10 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+
+import org.jdesktop.swingx.JXHyperlink;
+import org.jdesktop.swingx.JXTable;
+import org.jdesktop.swingx.hyperlink.HyperlinkAction;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -56,12 +69,12 @@ import org.jsoup.select.Elements;
 public class Main {
 	private static Hashtable<String, String> teamTable = new Hashtable<String, String>();
 	private static int i, blankPg, firstRun, zeroResults,rankMinVal,rankMaxVal,buyMinVal,buyMaxVal,sellMinVal,sellMaxVal,errorExists;
-	private static String sourceCode, perDifStr;
+	private static String sourceCode, perDifStr, currentVersion;
 	private static ArrayList<Element> allMatches = new ArrayList<Element>();
 	private static ArrayList<PlayerCard> allCards = new ArrayList<PlayerCard>();
 	private static List<Element> allMatchesOnPage = new ArrayList<Element>();
-	private static String[] columnNames = {"Ovr", "Name", "Team","Series" ,"Buy Now", "Sell Now", "Buy - Sell (w/Tax)", "% Difference","Pg #"};
-	private static String[] comboItems = {"Live Series"};
+	private static String[] columnNames = {"Ovr", "Name", "Team","Series" ,"Buy Now", "Sell Now", "Buy - Sell (w/Tax)", "% Difference","Pg #","URL"};
+	private static String[] comboItems = {"Live","Default","Rookie","Breakout","Impact Veteran","All-Star","Hardware","Postseason","Monthly Awards","Future Stars"};
 	private static Object[][] data ={};
     private static DefaultTableModel model = new DefaultTableModel(data,columnNames);
     private static JTable table;
@@ -71,15 +84,17 @@ public class Main {
     private static JFrame frame;
     private static JLabel lastUpdated, updatingLabel,errorLabel;
     private static BufferedReader in;
-    private static JButton addButton, filterButton, resetFilterButton, quickRefreshButton;
+    private static JButton addButton, filterButton, resetFilterButton, quickRefreshButton, calibrateButton;
     private static JTextField rankMin,rankMax,buyMin,buyMax,sellMin,sellMax;
     private static Border redBorder, defBorder;
     private static TableRowSorter<DefaultTableModel> rowSorter;
     private static JComboBox seriesCombo;
+    private static ArrayList<Integer> pgNums;
     //private static int totalDifference;
     
     public static void main(String[] args) throws IOException{
-			teamTable.put("ari","Diamondbacks"); teamTable.put("atl","Braves"); teamTable.put("bal","Orioles"); teamTable.put("bos","Red Sox"); teamTable.put("chc","Cubs"); teamTable.put("cin","Reds"); teamTable.put("cle","Indians"); teamTable.put("col","Rockies"); teamTable.put("cws","White Sox"); teamTable.put("det","Tigers"); teamTable.put("fa","Free Agent"); teamTable.put("hou","Astros"); teamTable.put("kc","Royals"); teamTable.put("laa","Angels"); teamTable.put("lad","Dodgers"); teamTable.put("mia","Marlins"); teamTable.put("mil","Brewers"); teamTable.put("min","Twins"); teamTable.put("nym","Mets"); teamTable.put("nyy","Yankees"); teamTable.put("oak","Athletics"); teamTable.put("phi","Phillies"); teamTable.put("pit","Pirates"); teamTable.put("sd","Padres"); teamTable.put("sea","Mariners"); teamTable.put("sf","Giants"); teamTable.put("stl","Cardinals"); teamTable.put("tb","Rays"); teamTable.put("tex","Rangers"); teamTable.put("wsh","Nationals"); teamTable.put("tor","Blue Jays");
+    		currentVersion = "1.0";
+			//teamTable.put("ari","Diamondbacks"); teamTable.put("atl","Braves"); teamTable.put("bal","Orioles"); teamTable.put("bos","Red Sox"); teamTable.put("chc","Cubs"); teamTable.put("cin","Reds"); teamTable.put("cle","Indians"); teamTable.put("col","Rockies"); teamTable.put("cws","White Sox"); teamTable.put("det","Tigers"); teamTable.put("fa","Free Agent"); teamTable.put("hou","Astros"); teamTable.put("kc","Royals"); teamTable.put("laa","Angels"); teamTable.put("lad","Dodgers"); teamTable.put("mia","Marlins"); teamTable.put("mil","Brewers"); teamTable.put("min","Twins"); teamTable.put("nym","Mets"); teamTable.put("nyy","Yankees"); teamTable.put("oak","Athletics"); teamTable.put("phi","Phillies"); teamTable.put("pit","Pirates"); teamTable.put("sd","Padres"); teamTable.put("sea","Mariners"); teamTable.put("sf","Giants"); teamTable.put("stl","Cardinals"); teamTable.put("tb","Rays"); teamTable.put("tex","Rangers"); teamTable.put("wsh","Nationals"); teamTable.put("tor","Blue Jays");
 			blankPg=2000;
 			//totalDifference=0;
 			try {
@@ -102,7 +117,7 @@ public class Main {
 			        }
 					
 					JPanel topPanel = new JPanel();
-					topPanel.setLayout(new GridLayout(2,2));
+					topPanel.setLayout(new GridLayout(2,3));
 					JPanel tablePanel = new JPanel();
 					addButton = new JButton("Refresh");
 					quickRefreshButton = new JButton("Quick Refresh");
@@ -110,16 +125,18 @@ public class Main {
 
 					filterButton = new JButton("Filter");
 					resetFilterButton = new JButton("Reset Filter");
+					calibrateButton = new JButton("Calibrate");
 					//JButton removeButton = new JButton("Remove");
 			        addButton.setBounds(50,50,90, 50);
 			        filterButton.setBounds(50,50,90, 50);  
-					
+			        calibrateButton.setBounds(50,50,90, 50);
 			        
+			        calibrateButton.setEnabled(false);
 
-					frame = new JFrame("MLB The Show 17 Market Assistant v1.0");
+					frame = new JFrame("MLB The Show 18 Market Assistant v1.0");
 					frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-					frame.setSize(1200,560);
+					frame.setSize(1200,580);
 					//930 521
 				    table = new JTable(model){
 			            
@@ -167,6 +184,29 @@ public class Main {
 
 
 				    };
+				    table.removeColumn(table.getColumnModel().getColumn(9));
+				    table.addMouseListener(new MouseAdapter() {
+				    	  public void mouseClicked(MouseEvent e) {
+
+				    	        //int row = table.getSelectedRow().convertRowIndexToModel();
+				    	        //int col = table.getSelectedColumn();
+				    	        int row = table.getRowSorter().convertRowIndexToModel(table.getSelectedRow());
+				    	        int col = table.getSelectedColumn();
+				    		  	
+				    	        
+				    	        //build your address / link
+				    	        if(col==1){
+					    	        URI uri;
+									try {
+										uri = new URI((String) table.getModel().getValueAt(row,9));
+						    	        open(uri);
+									} catch (URISyntaxException e1) {
+										// TODO Auto-generated catch block
+										e1.printStackTrace();
+									}
+				    	        }
+				    	      }
+				    	    });
 				    
 				      addButton.addActionListener(new ActionListener()
 				      {
@@ -196,7 +236,7 @@ public class Main {
 				      {
 				         public void actionPerformed(ActionEvent e)
 				         {
-				        	 ArrayList<Integer> pgNums = new ArrayList<Integer>();
+				        	 pgNums = new ArrayList<Integer>();
 				        	 //System.out.println("5");
 				             
 				        	 listLoop: for(int row = 0;row < table.getModel().getRowCount();row++) {
@@ -333,10 +373,57 @@ public class Main {
 				         }
 				      });
 				      
+				      calibrateButton.addActionListener(new ActionListener()
+				      {
+				         public void actionPerformed(ActionEvent e)
+				         {
+							System.out.println("Calibrate");							
+				         }
+				      }); 
+				      
+				    JLabel updateAvailable = new JLabel("<html><a href=\"www.google.com\">Update Available</a></html>");
+				    updateAvailable.setHorizontalAlignment(JLabel.CENTER);
+				    updateAvailable.setVisible(false);
+				    
+				    try {
+						Document verCheck = Jsoup.connect("http://authserver.nfshost.com/mlb.html").get();
+						String upToDate = verCheck.getElementsByTag("body").html().replace(" ", "");
+
+						if(!currentVersion.contains(upToDate)){
+						    updateAvailable.setVisible(true);
+						}
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+
+				    //http://authserver.nfshost.com/mlb.html
+				    
+				    
+				    
+				    updateAvailable.addMouseListener(new MouseAdapter()  
+				    {  
+				        public void mouseClicked(MouseEvent e)  
+				        {  
+			    	        URI uri;
+							try {
+								uri = new URI("https://github.com/AnthoneyKalasho/MlbTheShow18MarketAssistant");
+				    	        open(uri);
+							} catch (URISyntaxException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+
+				        }  
+				    }); 
+
+				      
 				    topPanel.add(addButton);
 				    topPanel.add(quickRefreshButton);
 				    topPanel.add(filterButton);
 				    topPanel.add(resetFilterButton);
+				    topPanel.add(calibrateButton, 3,2);
+				    topPanel.add(updateAvailable, 2,5);
 
 				    mainPanel = new JPanel();
 				    
@@ -356,6 +443,17 @@ public class Main {
 				    seriesPanel = new JPanel();
 				    seriesPanel.setBorder(BorderFactory.createTitledBorder("Card Series"));
 				    seriesCombo = new JComboBox<String>(comboItems);
+				    
+				    seriesCombo.addActionListener(
+			                new ActionListener(){
+			                    public void actionPerformed(ActionEvent e){
+			                    	firstRun = 0;
+			                    	pgNums = new ArrayList<Integer>();
+			            			blankPg=2000;
+			                    }
+			                }            
+			        );
+				    
 				    seriesPanel.add(seriesCombo);
 				    
 				    
@@ -457,18 +555,18 @@ public class Main {
 				    lastUpdated = new JLabel("Last Updated: Never");
 				    updatingLabel = new JLabel("Updating: Page 0 of 0");
 				    errorLabel = new JLabel("Error: Min is higher than Max");
-				    JLabel donationLabel = new JLabel("This is a free program. If you like it, donate to PayPal: AnthoneyKalasho@Gmail.com");
-				    donationPanel.add(donationLabel,BorderLayout.CENTER);
+				    JLabel donationLabel = new JLabel("This is a free program. If you like it, donate to PayPal: AnthoneyKalasho@Gmail.com or Venmo: @AnthoneyKalasho");
+				    donationPanel.add(errorLabel,BorderLayout.CENTER);
 				    errorLabel.setForeground(Color.red);
 				    errorLabel.setVisible(false);
 				    bottomPanel.setLayout(new BorderLayout());
-				    updatingLabel.setBorder(new EmptyBorder( 3,50, 3, 3 ));
+				    updatingLabel.setBorder(new EmptyBorder( 3,50, 3, 0 ));
 				    lastUpdated.setBorder(new EmptyBorder( 3, 3, 3, 50 ));
-				    errorLabel.setBorder(new EmptyBorder( 3, 260, 3, 0 ));
-				    donationLabel.setBorder(new EmptyBorder( 3, 3, 3, 3 ));
+				    errorLabel.setBorder(new EmptyBorder( 3, 0, 15, 0 ));
+				    donationLabel.setBorder(new EmptyBorder( 3, 170, 3, 3 ));
 				    bottomPanel.add(updatingLabel, BorderLayout.WEST);
 				    bottomPanel.add(lastUpdated,BorderLayout.EAST);
-				    bottomPanel.add(errorLabel,BorderLayout.CENTER);
+				    bottomPanel.add(donationLabel,BorderLayout.CENTER);
 
 				    //bottomPanel.setPreferredSize(preferredSize)
 				    
@@ -613,19 +711,19 @@ public class Main {
 	}
 	
 	public static PlayerCard toPlayerCard(Element match, int pgNum){
-		String cardName = "blankName",cardTeam="blank";
+		String cardName = "blankName",cardTeam="blank", cardURL = "https://mlb18.theshownation.com";
 		int cardRank = 0, cardBuy = 0, cardSell = 0, cardID = 0;
 		
-		cardName = match.select("td > a[href]").text();
-		cardRank = Integer.parseInt(match.select("td:nth-of-type(4)").text());
-		Elements buySell = match.select("td > a[cardid]");
-		cardBuy = Integer.parseInt(buySell.get(0).text());
-		cardSell = Integer.parseInt(buySell.get(1).text());
-		cardTeam = match.select("td:nth-of-type(2)").text().toLowerCase();
+		cardName = match.select("div[class*=marketplace-filter-item-name] > a").text();
+		cardURL = match.select("div[class*=marketplace-filter-item-name] > a").attr("abs:href");
+		cardRank = Integer.parseInt(match.select("div[class*=overall]").text().replace("OVR", "").replace(" ",""));
+		cardSell = Integer.parseInt(match.select("div[class*=marketplace-filter-item-stats-block price]").get(0).text().replace("Buy Now ","").replace(" ",""));
+		cardBuy = Integer.parseInt(match.select("div[class*=marketplace-filter-item-stats-block price]").get(1).text().replace("Sell Now ","").replace(" ",""));
+		cardTeam = match.select("div[class*=marketplace-filter-item-stats-block team]").text();
 		
 		
-		cardTeam =  teamTable.get(cardTeam).toString();
-		PlayerCard outputCard = new PlayerCard(cardRank, cardName,"Live Series", cardBuy, cardSell, cardID, cardTeam, pgNum);
+		//cardTeam =  teamTable.get(cardTeam).toString();
+		PlayerCard outputCard = new PlayerCard(cardRank, cardName,(String)seriesCombo.getSelectedItem(), cardURL, cardBuy, cardSell, cardID, cardTeam, pgNum);
 		return outputCard;
 	}
 	
@@ -642,10 +740,12 @@ public class Main {
 	        	filterButton.setEnabled(false);
 	        	resetFilterButton.setEnabled(false);
     		    quickRefreshButton.setEnabled(false);
+	        	seriesCombo.setEnabled(false);
+
 
 	  			try{
-			    Document doc = Jsoup.connect("https://www.daddyleagues.com/dd/17/players?name=&position=all&team=all&series=1337&page="+i).get();
-			    Elements matches = doc.select("tr[class=tbdy1]");
+			    Document doc = Jsoup.connect("https://mlb18.theshownation.com/community_market/listings?series="+ ((String) seriesCombo.getSelectedItem()).replace(" ", "%20")+"&type=MLB_Card&page="+i).get();
+			    Elements matches = doc.select("div[class*=mlb-card]");
   			    if(matches.size()==0){
   					//System.out.println("Page "+i+" is blank.");
   					blankPg=i-1;
@@ -663,12 +763,16 @@ public class Main {
 						if (tempCard.getSellNow()==0) {
 							perDifStr = "N/A";
 						}	
-						model.addRow(new Object[]{(Integer)tempCard.getCardRank(),tempCard.getName(),tempCard.getTeam(),"Live Series",(Integer)tempCard.getBuyNow(),(Integer)tempCard.getSellNow(),difAfterTax,perDifStr,tempCard.getPg()});		
+						//model.addRow(new Object[]{(Integer)tempCard.getCardRank(),"<html><a href=\"" + tempCard.getLink() + "\">"+tempCard.getName()+"</a></html>",tempCard.getTeam(),"Live Series",(Integer)tempCard.getBuyNow(),(Integer)tempCard.getSellNow(),difAfterTax,perDifStr,tempCard.getPg()});		
+						//model.addRow(new Object[]{(Integer)tempCard.getCardRank(),tempCard.getName(),tempCard.getTeam(),"Live Series",(Integer)tempCard.getBuyNow(),(Integer)tempCard.getSellNow(),difAfterTax,perDifStr,tempCard.getPg()});		
+						model.addRow(new Object[]{(Integer)tempCard.getCardRank(), "<html><a href=\"" + tempCard.getLink() + "\">"+tempCard.getName()+"</a></html>",tempCard.getTeam(),seriesCombo.getSelectedItem(),(Integer)tempCard.getBuyNow(),(Integer)tempCard.getSellNow(),difAfterTax,perDifStr,tempCard.getPg(), tempCard.getLink()});		
 					}
   					
   					addButton.setEnabled(true);
   		        	filterButton.setEnabled(true);
   		        	resetFilterButton.setEnabled(true);
+  		        	seriesCombo.setEnabled(true);
+
   		        	//System.out.println(totalDifference);          		    
   			    }
 			    
@@ -678,6 +782,8 @@ public class Main {
   		        	filterButton.setEnabled(true);
   		        	resetFilterButton.setEnabled(true);
   	    		    quickRefreshButton.setEnabled(true);
+  		        	seriesCombo.setEnabled(true);
+
 
   					firstRun=1;
   					t.stop();
@@ -730,6 +836,7 @@ public class Main {
     		    addButton.setEnabled(true);
 	        	filterButton.setEnabled(true);
 	        	resetFilterButton.setEnabled(true);
+	        	seriesCombo.setEnabled(true);
         		t.stop();
         	  }
         	  i++;
@@ -756,13 +863,15 @@ public class Main {
 	        	filterButton.setEnabled(false);
 	        	resetFilterButton.setEnabled(false);
     		    quickRefreshButton.setEnabled(false);
+	        	seriesCombo.setEnabled(false);
+
 
 	  			try{
 	        	//URL yahoo = new URL("http://theshownation.com/market?page=" + i);
 		        //URL yahoo = new URL("http://theshownation.com/market?page="+pgList.get(i)+"&series_id=1337");
 	  			//https://www.daddyleagues.com/dd/17/players?name=&position=all&team=all&series=1337&page=3
-				Document doc = Jsoup.connect("https://www.daddyleagues.com/dd/17/players?name=&position=all&team=all&series=1337&page="+pgList.get(i)).get();
-			    Elements matches = doc.select("tr[class=tbdy1]");
+				Document doc = Jsoup.connect("https://mlb18.theshownation.com/community_market/listings?series="+ ((String) seriesCombo.getSelectedItem()).replace(" ", "%20")+"&type=MLB_Card&page="+pgList.get(i)).get();
+			    Elements matches = doc.select("div[class*=mlb-card]");
   			    if(matches.size()==0){
   					//System.out.println("Page "+i+" is blank.");
   					blankPg=i-1;
@@ -772,6 +881,8 @@ public class Main {
   					addButton.setEnabled(true);
   		        	filterButton.setEnabled(true);
   		        	resetFilterButton.setEnabled(true);
+  		        	seriesCombo.setEnabled(true);
+
   		        	//System.out.println(totalDifference);
   			    }
 	  	
@@ -781,6 +892,8 @@ public class Main {
   		        	filterButton.setEnabled(true);
   		        	resetFilterButton.setEnabled(true);
   	    		    quickRefreshButton.setEnabled(true);
+  		        	seriesCombo.setEnabled(true);
+
 
   					firstRun=1;
   					t.stop();
@@ -833,6 +946,8 @@ public class Main {
     		    addButton.setEnabled(true);
 	        	filterButton.setEnabled(true);
 	        	resetFilterButton.setEnabled(true);
+	        	seriesCombo.setEnabled(true);
+
 	        	
 				for(PlayerCard tempCard : allCards){
 					float difAfterTax = (float)((((double)tempCard.getBuyNow())-((double)tempCard.getBuyNow())* .1)-(double)tempCard.getSellNow());
@@ -847,7 +962,7 @@ public class Main {
 					if (tempCard.getSellNow()==0) {
 						perDifStr = "N/A";
 					}	
-					model.addRow(new Object[]{(Integer)tempCard.getCardRank(),tempCard.getName(),tempCard.getTeam(),"Live Series",(Integer)tempCard.getBuyNow(),(Integer)tempCard.getSellNow(),difAfterTax,perDifStr,tempCard.getPg()});		
+					model.addRow(new Object[]{(Integer)tempCard.getCardRank(), "<html><a href=\"" + tempCard.getLink() + "\">"+tempCard.getName()+"</a></html>",tempCard.getTeam(),seriesCombo.getSelectedItem(),(Integer)tempCard.getBuyNow(),(Integer)tempCard.getSellNow(),difAfterTax,perDifStr,tempCard.getPg(),tempCard.getLink()});		
 				}
 	        	
 	        	
@@ -903,5 +1018,13 @@ public class Main {
 	        e.printStackTrace();
 	    }
 	}
+	
+	private static void open(URI uri) {
+		  if (Desktop.isDesktopSupported()) {
+		    try {
+		       Desktop.getDesktop().browse(uri);
+		      } catch (IOException e) { /* TODO: error handling */ }
+		   } else { /* TODO: error handling */ }
+		 }
 
 }

@@ -7,10 +7,12 @@ public class PlayerCard {
 	private int pageNumber;
 	private String playerTeam;
 	private String playerSeries;
-
-	PlayerCard(int cardRank, String name, String series, int buy, int sell,
+	private String playerLink;
+	
+	PlayerCard(int cardRank, String name, String series, String url, int buy, int sell,
 			int ID, String team, int pageNum) {
 		playerName = name;
+		playerLink = url;
 		buyNow = buy;
 		sellNow = sell;
 		playerID = ID;
@@ -48,6 +50,9 @@ public class PlayerCard {
 	}
 	public String getSeries() {
 		return playerSeries;
+	}
+	public String getLink() {
+		return playerLink;
 	}
 
 }
