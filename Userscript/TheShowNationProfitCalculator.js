@@ -59,12 +59,11 @@ $(document).ready(function () {
                 }
             });
             soldInHourRow.html(mSoldInHour);
-            var mDifAfterTax;
             // mBuyNowPrice can be null if nobody is offering to sell this item
             // mSellNowPrice can be null if nobody is offering to buy this item
             if(mBuyNowPrice != null && mSellNowPrice !=null)
             {
-                mDifAfterTax = (mBuyNowPrice - (mBuyNowPrice * 0.1)) - mSellNowPrice;
+                var mDifAfterTax = (mBuyNowPrice - (mBuyNowPrice * 0.1)) - mSellNowPrice;
                 mDifAfterTax = precisionRound(mDifAfterTax, 2);
                 datRow.html(mDifAfterTax);
                 var mPercentDiff = (mDifAfterTax / mSellNowPrice) * 100;
@@ -77,12 +76,23 @@ $(document).ready(function () {
 
 function getDate(dateString)
 {
+  var date = new Date();
+  var fixedDateString;
   if(dateString.substring(20,21)=='P')
   {
+    // If PM, add 12 hours and cut off the end bit that keeps dateString from deserializing properly
     var hour = parseInt(dateString.substring(15,17));
     hour += 12;
-    return new Date(dateString.slice(0,15) + hour + dateString.slice(17,20));
+    fixedDateString = dateString.slice(0,15) + hour + dateString.slice(17,20);
+    date = Date(fixedDateString);
   }
+  else
+  {
+    // If AM just cut off the end bit that keeps dateString from deserializing properly
+    fixedDateString = dateString.slice(0,20);
+    date = new Date(fixedDateString);
+  }
+  return date;
 }
 
 function precisionRound(number, precision) {
