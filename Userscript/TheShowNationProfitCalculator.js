@@ -37,12 +37,12 @@ $(document).ready(function () {
             var parsedData = $(jQuery.parseHTML(data));
             var buyNowButtonContainer = parsedData.find('.marketplace-card-buy-orders > .marketplace-card-create-forms > .marketplace-card-order-now')[0];
             // If somebody is offering to sell this item, get price
-            if(buyNowButtonContainer!=null){mBuyNowPrice = parseInt(buyNowButtonContainer.innerText.replace(/\D/g, ''));}
+            if(buyNowButtonContainer!=null){mBuyNowPrice = buyNowButtonContainer.innerText.replace(/\D/g, '');}
             // Don't have to do this but it makes console errors go away
             if(mBuyNowPrice != null){buyNowRow.html(mBuyNowPrice);}
             var sellNowButtonContainer = parsedData.find('.marketplace-card-sell-orders > .marketplace-card-create-forms > .marketplace-card-order-now')[0];
             // If somebody is offering to buy this item, get price
-            if(sellNowButtonContainer!=null){mSellNowPrice = parseInt(sellNowButtonContainer.innerText.replace(/\D/g, ''));}
+            if(sellNowButtonContainer!=null){mSellNowPrice = sellNowButtonContainer.innerText.replace(/\D/g, '');}
             // Don't have to do this but it makes console errors go away
             if(mSellNowPrice != null){sellNowRow.html(mSellNowPrice);}
             parsedData.find('.completed-order').each(function () {
