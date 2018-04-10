@@ -2,7 +2,7 @@ $(document).ready(function () {
     'use strict';
     // "Market prices on this page are refreshed hourly." Not anymore!!! :D
     $('.marketplace-filter-disclaimer').remove();
-    var tableHTML = '<table class="sortable" width= 100%; font-size: 15px;"><thead><tr><th>Name</th><th>Buy Now</th><th>Sell Now</th><th>Profit(After Tax)</th><th>Difference% (After Tax)</th><th>Bought/Sold in the past hour</th></thead></tr><tbody>';
+    var tableHTML = '<table class="sortable" width= 100%; font-size: 15px;"><thead><tr><th>Name</th><th class="sorttable_numeric">Buy Now</th><th class="sorttable_numeric">Sell Now</th><th class="sorttable_numeric">Profit(After Tax)</th><th class="sorttable_numeric">Difference% (After Tax)</th><th class="sorttable_numeric">Bought/Sold in the past hour</th></thead></tr><tbody>';
     var objectArray = [];
     $('.marketplace-filter-item').each(function () {
         var name = $(this).find('.marketplace-filter-item-name > a').text();
@@ -46,7 +46,7 @@ $(document).ready(function () {
             // Don't have to do this but it makes console errors go away
             if(mSellNowPrice != null){sellNowRow.html(mSellNowPrice);}
             parsedData.find('.completed-order').each(function () {
-                var thisDate = getDate($(this).find('.date').text());
+                var thisDate = getMlbtsDateFromString($(this).find('.date').text());
                 var OneHourAgo = new Date(Date.now());
                 OneHourAgo.setHours(OneHourAgo.getHours() - 1);
                 // These come in descending order
@@ -74,7 +74,9 @@ $(document).ready(function () {
     });
 });
 
-function getDate(dateString)
+// Chrome can't convert the date format in the Completed Orders section of an item's page into a Date
+// This metod will reformat the string properly and the turn it into a Date object
+function getMlbtsDateFromString(dateString)
 {
   var date = new Date();
   var fixedDateString;
