@@ -1,3 +1,12 @@
+// ==UserScript==
+// @name         MLB The Show Nation Profit Calculator
+// @namespace    https://greasyfork.org/en/users/177153-anthoney-kalasho
+// @version      2018.4.5.2
+// @description  Calculates the current profitability of a card and displays it on search page
+// @author       AnthoneyKalasho
+// @match        https://mlb18.theshownation.com/community_market/listings*
+// @grant        unsafeWindow
+// ==/UserScript==
 $(document).ready(function () {
     'use strict';
     // "Market prices on this page are refreshed hourly." Not anymore!!! :D
