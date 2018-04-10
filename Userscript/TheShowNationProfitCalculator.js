@@ -46,7 +46,7 @@ $(document).ready(function () {
             // Don't have to do this but it makes console errors go away
             if(mSellNowPrice != null){sellNowRow.html(mSellNowPrice);}
             parsedData.find('.completed-order').each(function () {
-                var thisDate = new Date($(this).find('.date').text());
+                var thisDate = getDate($(this).find('.date').text());
                 var OneHourAgo = new Date(Date.now());
                 OneHourAgo.setHours(OneHourAgo.getHours() - 1);
                 // These come in descending order
@@ -74,6 +74,16 @@ $(document).ready(function () {
         });
     });
 });
+
+function getDate(dateString)
+{
+  if(dateString.substring(20,21)=='P')
+  {
+    var hour = parseInt(dateString.substring(15,17));
+    hour += 12;
+    return new Date(dateString.slice(0,15) + hour + dateString.slice(17,20));
+  }
+}
 
 function precisionRound(number, precision) {
     var factor = Math.pow(10, precision);
