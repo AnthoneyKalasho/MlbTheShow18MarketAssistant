@@ -34,7 +34,6 @@ $(document).ready(function () {
         soldInHourRow.html(0);
         $.ajax({url: rowURL
                }).done(function (data) {
-            console.log(rowURL);
             var parsedData = $(jQuery.parseHTML(data));
             var buyNowButtonContainer = parsedData.find('.marketplace-card-buy-orders > .marketplace-card-create-forms > .marketplace-card-order-now')[0];
             // If somebody is offering to sell this item, get price
@@ -63,15 +62,11 @@ $(document).ready(function () {
             var mDifAfterTax;
             // mBuyNowPrice can be null if nobody is offering to sell this item
             // mSellNowPrice can be null if nobody is offering to buy this item
-            if(mBuyNowPrice == null || mSellNowPrice ==null)
+            if(mBuyNowPrice != null && mSellNowPrice !=null)
             {
                 mDifAfterTax = (mBuyNowPrice - (mBuyNowPrice * 0.1)) - mSellNowPrice;
                 mDifAfterTax = precisionRound(mDifAfterTax, 2);
                 datRow.html(mDifAfterTax);
-            }
-            // If mBuyNowPrice or mSellNowPrice was null, we can't calculate this either
-            if(mDifAfterTax != null)
-            {
                 var mPercentDiff = (mDifAfterTax / mSellNowPrice) * 100;
                 mPercentDiff = precisionRound(mPercentDiff, 2);
                 pdRow.html(mPercentDiff+'%');
